@@ -129,6 +129,7 @@ func parseChainNode(ns string) (nodes []gost.Node, err error) {
 		ServerName:         serverName,
 		InsecureSkipVerify: !node.GetBool("secure"),
 		RootCAs:            rootCAs,
+		NextProtos:         []string{"relay"},
 	}
 
 	// If the argument `ca` is given, but not open `secure`, we verify the

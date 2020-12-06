@@ -1,6 +1,7 @@
 package gost
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -21,7 +22,7 @@ type quicSession struct {
 }
 
 func (session *quicSession) GetConn() (*quicConn, error) {
-	stream, err := session.session.OpenStreamSync()
+	stream, err := session.session.OpenStreamSync(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +34,7 @@ func (session *quicSession) GetConn() (*quicConn, error) {
 }
 
 func (session *quicSession) Close() error {
-	return session.session.Close()
+	return session.session.CloseWithError(1, "")
 }
 
 type quicTransporter struct {
@@ -141,11 +142,7 @@ func (tr *quicTransporter) initSession(addr string, conn net.Conn, config *QUICC
 	quicConfig := &quic.Config{
 		HandshakeTimeout: config.Timeout,
 		KeepAlive:        config.KeepAlive,
-		IdleTimeout:      config.IdleTimeout,
-		Versions: []quic.VersionNumber{
-			quic.VersionGQUIC43,
-			quic.VersionGQUIC39,
-		},
+		MaxIdleTimeout:   config.IdleTimeout,
 	}
 	session, err := quic.Dial(udpConn, udpAddr, addr, config.TLSConfig, quicConfig)
 	if err != nil {
@@ -182,7 +179,7 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 	quicConfig := &quic.Config{
 		HandshakeTimeout: config.Timeout,
 		KeepAlive:        config.KeepAlive,
-		IdleTimeout:      config.IdleTimeout,
+		MaxIdleTimeout:   config.IdleTimeout,
 	}
 
 	tlsConfig := config.TLSConfig
@@ -223,7 +220,7 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 
 func (l *quicListener) listenLoop() {
 	for {
-		session, err := l.ln.Accept()
+		session, err := l.ln.Accept(context.Background())
 		if err != nil {
 			log.Log("[quic] accept:", err)
 			l.errChan <- err
@@ -239,10 +236,10 @@ func (l *quicListener) sessionLoop(session quic.Session) {
 	defer log.Logf("[quic] %s >-< %s", session.RemoteAddr(), session.LocalAddr())
 
 	for {
-		stream, err := session.AcceptStream()
+		stream, err := session.AcceptStream(context.Background())
 		if err != nil {
 			log.Log("[quic] accept stream:", err)
-			session.Close()
+			session.CloseWithError(1, "")
 			return
 		}
 

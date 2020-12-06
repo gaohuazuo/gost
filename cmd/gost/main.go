@@ -77,6 +77,7 @@ func main() {
 		}
 		tlsConfig = &tls.Config{
 			Certificates: []tls.Certificate{cert},
+			NextProtos:   []string{"relay"},
 		}
 	} else {
 		log.Log("load TLS certificate files OK")
