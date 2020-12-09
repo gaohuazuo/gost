@@ -143,6 +143,7 @@ func (tr *quicTransporter) initSession(addr string, conn net.Conn, config *QUICC
 		HandshakeTimeout: config.Timeout,
 		KeepAlive:        config.KeepAlive,
 		MaxIdleTimeout:   config.IdleTimeout,
+		SendBandwidth:    config.Bandwidth,
 	}
 	session, err := quic.Dial(udpConn, udpAddr, addr, config.TLSConfig, quicConfig)
 	if err != nil {
@@ -163,6 +164,7 @@ type QUICConfig struct {
 	KeepAlive   bool
 	IdleTimeout time.Duration
 	Key         []byte
+	Bandwidth   uint64
 }
 
 type quicListener struct {
@@ -180,6 +182,7 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 		HandshakeTimeout: config.Timeout,
 		KeepAlive:        config.KeepAlive,
 		MaxIdleTimeout:   config.IdleTimeout,
+		SendBandwidth:    config.Bandwidth,
 	}
 
 	tlsConfig := config.TLSConfig
