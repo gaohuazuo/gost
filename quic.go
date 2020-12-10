@@ -140,10 +140,11 @@ func (tr *quicTransporter) initSession(addr string, conn net.Conn, config *QUICC
 		return nil, err
 	}
 	quicConfig := &quic.Config{
-		HandshakeTimeout: config.Timeout,
-		KeepAlive:        config.KeepAlive,
-		MaxIdleTimeout:   config.IdleTimeout,
-		SendBandwidth:    config.Bandwidth,
+		HandshakeTimeout:   config.Timeout,
+		KeepAlive:          config.KeepAlive,
+		MaxIdleTimeout:     config.IdleTimeout,
+		MaxIncomingStreams: 100000000,
+		SendBandwidth:      config.Bandwidth,
 	}
 	session, err := quic.Dial(udpConn, udpAddr, addr, config.TLSConfig, quicConfig)
 	if err != nil {
@@ -179,10 +180,11 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 		config = &QUICConfig{}
 	}
 	quicConfig := &quic.Config{
-		HandshakeTimeout: config.Timeout,
-		KeepAlive:        config.KeepAlive,
-		MaxIdleTimeout:   config.IdleTimeout,
-		SendBandwidth:    config.Bandwidth,
+		HandshakeTimeout:   config.Timeout,
+		KeepAlive:          config.KeepAlive,
+		MaxIdleTimeout:     config.IdleTimeout,
+		MaxIncomingStreams: 100000000,
+		SendBandwidth:      config.Bandwidth,
 	}
 
 	tlsConfig := config.TLSConfig
